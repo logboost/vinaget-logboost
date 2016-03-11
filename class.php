@@ -1927,35 +1927,36 @@ class Download {
 				if($link) return $link;
 			}
 		}
-		$maxacc = count($this->lib->acc[$this->site]['accounts']);
-		if($maxacc == 0) $this->error('noaccount', true);
-		for ($k=0; $k < $maxacc; $k++){
-			$account = trim($this->lib->acc[$this->site]['accounts'][$k]);
-			if (stristr($account,':')) list($user, $pass) = explode(':',$account);
-			else $cookie = $account;
-			if(!empty($cookie) || (!empty($user) && !empty($pass))){
-				for ($j=0; $j < 2; $j++){
-					if(($maxacc-$k) == 1 && $j == 1) $this->last = true;
-					if(empty($cookie)) $cookie = $this->lib->get_cookie($this->site);
-					if(empty($cookie)) {
-						$cookie = false;
-						if(method_exists($this, "Login")) $cookie = $this->Login($user, $pass);
-					}
-					if(!$cookie) continue;
-					$this->save($cookie);
-					if(method_exists($this, "CheckAcc")) $status = $this->CheckAcc($this->lib->cookie);
-					else $status = array(true, "Without Acc Checker");
-					if($status[0]){
-						$link = false;
-						if(method_exists($this, "Leech")) $link = $this->Leech($this->url);
-						if($link) {
-							$link = $this->forcelink($link, 3);
-							if($link) return $link;
+		if(method_exists($this, "Leech")){
+			$maxacc = count($this->lib->acc[$this->site]['accounts']);
+			if($maxacc == 0) $this->error('noaccount', true);
+			for ($k=0; $k < $maxacc; $k++){
+				$account = trim($this->lib->acc[$this->site]['accounts'][$k]);
+				if (stristr($account,':')) list($user, $pass) = explode(':',$account);
+				else $cookie = $account;
+				if(!empty($cookie) || (!empty($user) && !empty($pass))){
+					for ($j=0; $j < 2; $j++){
+						if(($maxacc-$k) == 1 && $j == 1) $this->last = true;
+						if(empty($cookie)) $cookie = $this->lib->get_cookie($this->site);
+						if(empty($cookie) || $j == 1 && !empty($user) && !empty($pass)) {
+							$cookie = false;
+							if(method_exists($this, "Login")) $cookie = $this->Login($user, $pass);
 						}
-						else $this->error('pluginerror');
-					}
-					else{
-						$this->error($status[1]);
+						if(!$cookie) continue;
+						$this->save($cookie);
+						if(method_exists($this, "CheckAcc")) $status = $this->CheckAcc($this->lib->cookie);
+						else $status = array(true, "Without Acc Checker");
+						if($status[0]){
+							$link = $this->Leech($this->url);
+							if($link) {
+								$link = $this->forcelink($link, 3);
+								if($link) return $link;
+							}
+							else $this->error('pluginerror');
+						}
+						else{
+							$this->error($status[1]);
+						}
 					}
 				}
 			}
